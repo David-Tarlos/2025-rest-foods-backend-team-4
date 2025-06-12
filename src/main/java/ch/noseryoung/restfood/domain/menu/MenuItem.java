@@ -8,10 +8,12 @@ import java.util.UUID;
 
 @Entity
 @Data
+@Table(name = "menu_item")
 public class MenuItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+
     private UUID id;
 
     @NotBlank
