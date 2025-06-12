@@ -43,6 +43,28 @@ public class MenuService {
         return menuItemRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Menüeintrag mit ID " + id + " nicht gefunden."));
     }
+    public MenuItem saveMenuItem(MenuItem item) {
+        return menuItemRepository.save(item);
+    }
+
+    public MenuItem updateMenuItem(UUID id, MenuItem updatedItem) {
+        MenuItem existing = getItemById(id);
+        existing.setName(updatedItem.getName());
+        existing.setDescription(updatedItem.getDescription());
+        existing.setPrice(updatedItem.getPrice());
+        existing.setCategory(updatedItem.getCategory());
+        existing.setChefsChoice(updatedItem.isChefsChoice());
+        existing.setImageUrl(updatedItem.getImageUrl());
+        return menuItemRepository.save(existing);
+    }
+
+    public void deleteMenuItem(UUID id) {
+        if (!menuItemRepository.existsById(id)) {
+            throw new EntityNotFoundException("Menüeintrag mit ID " + id + " nicht gefunden.");
+        }
+        menuItemRepository.deleteById(id);
+    }
+
 }
 
 
