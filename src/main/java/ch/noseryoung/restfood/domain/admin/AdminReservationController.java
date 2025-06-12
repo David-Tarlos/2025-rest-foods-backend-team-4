@@ -1,4 +1,4 @@
-package ch.noseryoung.domain.admin;
+package ch.noseryoung.restfood.domain.admin;
 
 public class AdminReservationController {
 }

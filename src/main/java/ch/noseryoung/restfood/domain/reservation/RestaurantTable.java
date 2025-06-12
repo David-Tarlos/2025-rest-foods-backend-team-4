@@ -1,4 +1,4 @@
-package ch.noseryoung.domain.reservation;
+package ch.noseryoung.restfood.domain.reservation;
 
 import jakarta.persistence.*;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package ch.noseryoung.domain.menu;
+package ch.noseryoung.restfood.domain.menu;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
