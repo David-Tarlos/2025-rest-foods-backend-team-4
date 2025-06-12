@@ -1,9 +1,12 @@
 package ch.noseryoung.restfood.domain.reservation;
 
+import ch.noseryoung.restfood.domain.reservation.dto.ReservationRequestDTO;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,31 +19,21 @@ public class ReservationService {
     private final RestaurantTableRepository tableRepository;
     private static final int RESERVATION_DURATION_HOURS = 2;
 
-    /**
-     * Findet alle verfügbaren Tische für eine bestimmte Zeit und Personenzahl.
-     */
     public List<RestaurantTable> getAvailableTables(LocalDateTime desiredTime, int numberOfPeople) {
-        // 1. Finde alle Tische, die gross genug sind
         List<RestaurantTable> suitableTables = tableRepository.findByCapacityGreaterThanEqual(numberOfPeople);
-
-        // 2. Definiere das Zeitfenster der potenziellen Reservation
         LocalDateTime startTime = desiredTime;
         LocalDateTime endTime = desiredTime.plusHours(RESERVATION_DURATION_HOURS);
 
-        // 3. Filtere die Tische, die in diesem Zeitfenster keine Reservationen haben
         return suitableTables.stream()
                 .filter(table -> {
                     List<Reservation> conflictingReservations = reservationRepository.findReservationsForTableInTimespan(table.getId(), startTime, endTime);
-                    return conflictingReservations.isEmpty(); // Tisch ist frei, wenn es keine Konflikte gibt
+                    return conflictingReservations.isEmpty();
                 })
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Erstellt eine neue Reservation.
-     */
+    @Transactional
     public Reservation createReservation(Reservation newReservation) {
-        // 1. Prüfe nochmal, ob der Tisch wirklich verfügbar ist (wichtig!)
         List<RestaurantTable> availableTables = getAvailableTables(newReservation.getReservationStart(), newReservation.getNumberOfPeople());
         boolean isTableAvailable = availableTables.stream().anyMatch(table -> table.getId().equals(newReservation.getTable().getId()));
 
@@ -48,23 +41,39 @@ public class ReservationService {
             throw new IllegalStateException("Der gewählte Tisch ist zu dieser Zeit nicht mehr verfügbar.");
         }
 
-        // 2. Setze die Endzeit der Reservation
         newReservation.setReservationEnd(newReservation.getReservationStart().plusHours(RESERVATION_DURATION_HOURS));
 
-        // 3. Speichere die Reservation
         return reservationRepository.save(newReservation);
     }
 
-    /**
-     * Holt alle Reservationen (für Admin).
-     */
-    public List<Reservation> getAllReservations() {
-        return reservationRepository.findAll();
+    public List<Reservation> getReservationsByDate(LocalDate date) {
+        if (date == null) {
+            return reservationRepository.findAll();
+        } else {
+            LocalDateTime startOfDay = date.atStartOfDay();
+            LocalDateTime endOfDay = date.atTime(23, 59, 59);
+            return reservationRepository.findByReservationStartBetween(startOfDay, endOfDay);
+        }
     }
 
-    /**
-     * Löscht eine Reservation (für Admin).
-     */
+    @Transactional
+    public Reservation updateReservation(Long reservationId, ReservationRequestDTO dto) {
+        Reservation existingReservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new EntityNotFoundException("Reservation mit ID " + reservationId + " nicht gefunden."));
+
+        RestaurantTable table = tableRepository.findById(dto.getTableId())
+                .orElseThrow(() -> new EntityNotFoundException("Tisch mit ID " + dto.getTableId() + " nicht gefunden."));
+
+        existingReservation.setContactPerson(dto.getContactPerson());
+        existingReservation.setPhoneNumber(dto.getPhoneNumber());
+        existingReservation.setNumberOfPeople(dto.getNumberOfPeople());
+        existingReservation.setReservationStart(dto.getReservationStart());
+        existingReservation.setReservationEnd(dto.getReservationStart().plusHours(RESERVATION_DURATION_HOURS));
+        existingReservation.setTable(table);
+
+        return reservationRepository.save(existingReservation);
+    }
+
     public void deleteReservation(Long id) {
         if (!reservationRepository.existsById(id)) {
             throw new EntityNotFoundException("Reservation mit ID " + id + " nicht gefunden.");

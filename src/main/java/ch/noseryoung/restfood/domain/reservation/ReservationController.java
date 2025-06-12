@@ -50,17 +50,4 @@ public class ReservationController {
                 .created(URI.create("/api/v1/admin/reservations/" + createdReservation.getId()))
                 .body(createdReservation);
     }
-
-    // --- Admin Endpunkte ---
-
-    @GetMapping("/admin/reservations")
-    public ResponseEntity<List<Reservation>> getAllReservations() {
-        return ResponseEntity.ok(reservationService.getAllReservations());
-    }
-
-    @DeleteMapping("/admin/reservations/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT) // Gibt Status 204 No Content zurück
-    public void deleteReservation(@PathVariable Long id) {
-        reservationService.deleteReservation(id);
-    }
 }
