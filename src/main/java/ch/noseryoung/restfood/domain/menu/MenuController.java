@@ -17,6 +17,7 @@ public class MenuController {
         this.menuService = menuService;
     }
 
+
     @GetMapping("/menu-items")
     public ResponseEntity<List<MenuItem>> getMenuItems(
             @RequestParam(value = "category", required = false) String category) {
