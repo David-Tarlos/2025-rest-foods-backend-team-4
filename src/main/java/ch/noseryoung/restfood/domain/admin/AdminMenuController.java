@@ -19,22 +19,22 @@ public class AdminMenuController {
         this.menuService = menuService;
     }
 
-    // Menüeintrag erstellen
+
     @PostMapping
     public ResponseEntity<MenuItem> createMenuItem(@Valid @RequestBody MenuItem menuItem) {
-        // Service Methode zum Speichern fehlt, wir nehmen an menuService hat save (müsstest du ergänzen)
+
         MenuItem created = menuService.saveMenuItem(menuItem);
         return ResponseEntity.created(URI.create("/api/v1/admin/menu-items/" + created.getId())).body(created);
     }
 
-    // Menüeintrag aktualisieren
+
     @PutMapping("/{id}")
     public ResponseEntity<MenuItem> updateMenuItem(@PathVariable UUID id, @Valid @RequestBody MenuItem menuItem) {
         MenuItem updated = menuService.updateMenuItem(id, menuItem);
         return ResponseEntity.ok(updated);
     }
 
-    // Menüeintrag löschen
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteMenuItem(@PathVariable UUID id) {
         menuService.deleteMenuItem(id);
