@@ -77,7 +77,10 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
     }
-
+    @ExceptionHandler(TableUnavailableException.class)
+    public ResponseEntity<Object> handleTableUnavailable(TableUnavailableException ex) {
+        return buildResponse(HttpStatus.CONFLICT, "Reservierungskonflikt", ex.getMessage());
+    }
 
 }
 

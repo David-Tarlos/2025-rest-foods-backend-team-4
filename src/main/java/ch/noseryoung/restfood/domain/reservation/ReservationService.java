@@ -1,6 +1,7 @@
 package ch.noseryoung.restfood.domain.reservation;
 
 import ch.noseryoung.restfood.domain.reservation.dto.ReservationRequestDTO;
+import ch.noseryoung.restfood.exception.TableUnavailableException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ReservationService {
+
+
 
     private final ReservationRepository reservationRepository;
     private final RestaurantTableRepository tableRepository;
@@ -35,16 +38,18 @@ public class ReservationService {
     @Transactional
     public Reservation createReservation(Reservation newReservation) {
         List<RestaurantTable> availableTables = getAvailableTables(newReservation.getReservationStart(), newReservation.getNumberOfPeople());
-        boolean isTableAvailable = availableTables.stream().anyMatch(table -> table.getId().equals(newReservation.getTable().getId()));
+        boolean isTableAvailable = availableTables.stream()
+                .anyMatch(table -> table.getId().equals(newReservation.getTable().getId()));
 
         if (!isTableAvailable) {
-            throw new IllegalStateException("Der gewählte Tisch ist zu dieser Zeit nicht mehr verfügbar.");
+            throw new TableUnavailableException("Der gewählte Tisch ist zu dieser Zeit nicht mehr verfügbar.");
         }
 
         newReservation.setReservationEnd(newReservation.getReservationStart().plusHours(RESERVATION_DURATION_HOURS));
 
         return reservationRepository.save(newReservation);
     }
+
 
     public List<Reservation> getReservationsByDate(LocalDate date) {
         if (date == null) {
