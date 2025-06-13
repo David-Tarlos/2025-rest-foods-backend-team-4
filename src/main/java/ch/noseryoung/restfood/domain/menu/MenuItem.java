@@ -34,5 +34,6 @@ public class MenuItem {
     @Column(nullable = false)
     private boolean isChefsChoice = false;
 
+    @Column(length = 1000)
     private String imageUrl;
 }
